@@ -1,0 +1,14 @@
+{$BASE_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy nginx:80
+}
+
+{$INVENTORY_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy nginx:80
+}
+
+{$SERVICES_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy nginx:80
+}

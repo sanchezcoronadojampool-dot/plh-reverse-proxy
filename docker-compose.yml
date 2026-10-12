@@ -1,9 +1,39 @@
 services:
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: reverse-proxy-duckdns
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: America/Lima
+      SUBDOMAINS: ${DUCKDNS_SUBDOMAINS:?Set DUCKDNS_SUBDOMAINS in .env}
+      TOKEN: ${DUCKDNS_TOKEN:?Set DUCKDNS_TOKEN in .env}
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: reverse-proxy-caddy
+    environment:
+      BASE_DOMAIN: ${BASE_DOMAIN:?Set BASE_DOMAIN in .env}
+      INVENTORY_DOMAIN: ${INVENTORY_DOMAIN:?Set INVENTORY_DOMAIN in .env}
+      SERVICES_DOMAIN: ${SERVICES_DOMAIN:?Set SERVICES_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nginx
+    networks:
+      - web
+    restart: unless-stopped
+
   nginx:
     image: nginx:1.28-alpine
     container_name: reverse-proxy
-    ports:
-      - "80:80"
     volumes:
       - ./default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./projects:/etc/nginx/projects:ro
@@ -15,3 +45,7 @@ networks:
   web:
     external: true
     name: web
+
+volumes:
+  caddy_data:
+  caddy_config:
